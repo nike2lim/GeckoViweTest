@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "android-pipeline@android-pipeline-marketplace": true
+  }
+}

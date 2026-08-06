@@ -1,0 +1,162 @@
+{
+  "task": "GeckoView(XML View) 안드로이드 앱 신규 스캐폴딩 + WebExtension 브리지(페이지↔background.js↔네이티브) 구현 — REQ-001~011 (requirements.md rev.2 기준)",
+  "created_at": "2026-08-04T14:01:45+09:00",
+  "enforce": false,
+
+  "allowed_files": [
+    "settings.gradle.kts",
+    "build.gradle.kts",
+    "gradle.properties",
+    "local.properties",
+    ".gitignore",
+    "gradle/libs.versions.toml",
+    "gradle/wrapper/gradle-wrapper.properties",
+    "gradle/wrapper/gradle-wrapper.jar",
+    "gradlew",
+    "gradlew.bat",
+    "app/build.gradle.kts",
+    "app/proguard-rules.pro",
+    "app/src/main/AndroidManifest.xml"
+  ],
+
+  "allowed_globs": [
+    "app/src/main/java/com/example/geckoviewtest/**",
+    "app/src/main/kotlin/com/example/geckoviewtest/**",
+    "app/src/main/res/**",
+    "app/src/main/assets/**",
+    "app/src/debug/**",
+    "app/src/test/**",
+    "app/src/androidTest/**"
+  ],
+
+  "readonly_context": [
+    "initRequire.md",
+    "pipeline/requirements.md",
+    "doc/20260804/20260804_133952_planner-analyzer.md",
+    "doc/20260804/20260804_135506_planner-analyzer.md",
+    "/Users/appdevloperteam/.claude/plugins/cache/android-pipeline-marketplace/android-pipeline/1.0.0/rules/scope-guard.md",
+    "/Users/appdevloperteam/.claude/plugins/cache/android-pipeline-marketplace/android-pipeline/1.0.0/rules/architecture.md",
+    "/Users/appdevloperteam/.claude/plugins/cache/android-pipeline-marketplace/android-pipeline/1.0.0/rules/verification-honesty.md",
+    "/Users/appdevloperteam/.claude/plugins/cache/android-pipeline-marketplace/android-pipeline/1.0.0/rules/comment-style.md",
+    "/Users/appdevloperteam/.claude/plugins/cache/android-pipeline-marketplace/android-pipeline/1.0.0/rules/work-logging.md"
+  ],
+
+  "risk_notes": [
+    "[화이트리스트 자체의 한계 — 가장 먼저 읽을 것] guard-impact-scope.py는 PreToolUse(Edit|Write|NotebookEdit)에만 걸린다. Bash로 만드는 파일(`gradle wrapper`, `android` CLI, Android Studio 템플릿, `cp`, heredoc 리다이렉트)은 화이트리스트를 통과 여부 검사조차 받지 않고 생성된다. 즉 이 화이트리스트는 스캐폴딩 도구에 대해 실효 통제가 0이다. code-reviewer는 '가드가 막았을 것'이라고 가정하지 말고 실제 파일 트리를 이 목록과 직접 대조하라.",
+
+    "[glob 의미론] 가드는 fnmatch를 쓴다. fnmatch의 `*`는 `/`를 넘어간다 — `app/src/main/res/**`는 POSIX glob 직관과 달리 깊이 제한 없이 매칭된다(의도한 동작이다). 반대로 이 목록을 나중에 좁히려는 사람은 `*`가 경로 구분자를 먹는다는 점을 알고 있어야 한다. 실제로 hook 로직을 실행해 대표 경로 전부의 허용/차단을 확인했다(작업 로그 참조).",
+
+    "[readonly_context는 강제되지 않는다] hook은 화이트리스트를 조회하기 전에 `doc/`, `pipeline/`, `.claude/`를 무조건 통과시킨다(guard-impact-scope.py L31). 따라서 readonly_context에 올린 `pipeline/requirements.md`와 doc 로그는 규약일 뿐 기술적으로 보호되지 않는다. 특히 `.claude/**`는 자동 통제가 0이므로(verification-honesty V8) code-reviewer가 diff로 직접 봐야 한다.",
+
+    "[assets ↔ Kotlin 결합 — 한쪽만 고치면 반드시 깨진다] `app/src/main/assets/**`(JS/HTML)과 `app/src/main/java/com/example/geckoviewtest/**`(Kotlin)은 하나의 wire 스키마로 묶여 있다. 둘 다 화이트리스트에 있으므로 가드는 이 결합을 전혀 감지하지 못한다. 구체적 결합점 3개: ① 요청/응답 JSON 스키마(BridgeProtocol.kt ↔ background.js) ② nativeApp 식별자 문자열 ③ 함수명 문자열 집합(background.js 화이트리스트 ↔ Kotlin 디스패치 분기). rev.2에서 자산 쪽 파일이 2개에서 5개(manifest.json, background.js, content.js, page-bridge.js, index.html, bridge-client.js)로 늘어 결합면이 커졌다.",
+
+    "[nativeApp 문자열 불일치 = 무성 실패] `setMessageDelegate(delegate, \"browser\")`(Kotlin)와 `sendNativeMessage(\"browser\", ...)`(background.js)의 문자열이 어긋나면 예외도 로그도 없이 아무 일도 안 일어난다. 서로 다른 두 파일(다른 언어)에 흩어진 매직 문자열이며 컴파일러도 린트도 잡지 못한다. 상수화하고 양쪽에 근거 주석을 남길 것.",
+
+    "[abiFilters 미적용 시 APK 200MB+] AAR 크기를 재확인했다 — content-length 240,695,932 bytes(≈229.6 MiB), 3개 ABI 동봉. 이 대응이 들어갈 파일은 `app/build.gradle.kts` 단 하나이며 화이트리스트에 있다. 빠뜨리면 adb install이 수 분대가 되어 developer의 빌드·검증 루프가 사실상 마비된다. 실기기는 arm64-v8a(실측)이므로 debug는 arm64-v8a 단일로 좁힐 것.",
+
+    "[GeckoRuntime은 프로세스당 1회 — 두 파일 동시 수정] Application 스코프 싱글턴이어야 한다. 이는 `app/src/main/java/com/example/geckoviewtest/`의 Application 서브클래스 파일 **과** `app/src/main/AndroidManifest.xml`의 `android:name` 등록이 **쌍으로** 필요하다는 뜻이다. 한쪽만 만들면 런타임이 Activity에서 생성되거나 아예 초기화되지 않는다. 두 경로 모두 화이트리스트에 있으니 차단은 없지만, 쌍으로 처리해야 한다는 사실 자체가 리스크다.",
+
+    "[페이지 세계 격리(§2.6.1) — 거짓 그린 최대 위험] content script는 페이지와 JS 스코프가 격리되어 있고 Firefox는 Xray vision을 적용한다. content.js에서 `window.NativeBridge = {...}`로 대입해도 페이지 세계 JS는 그것을 볼 수 없다. 따라서 page-bridge.js를 `web_accessible_resources`에 등록하고 `<script>` 태그로 주입해야 한다 — 이 요구는 `app/src/main/assets/**` 안의 세 파일(manifest.json, content.js, page-bridge.js)이 서로를 전제한다는 뜻이다. 셋 중 하나만 빠져도 '격리 세계 안에서는 완벽히 동작'하므로 AC-010-3(PAGE_WORLD 마커) 없이는 통과해버린다.",
+
+    "[전송 경로 2종 → 한쪽 결과를 다른 쪽 근거로 쓰지 말 것] 확장 페이지(index.html)는 `runtime.sendMessage`부터 시작하는 3단, 외부 사이트는 `window.postMessage`가 앞에 붙는 5단이다. background.js 이후만 공통이다. 파일 관점에서 이 분기는 bridge-client.js(확장 페이지용 어댑터)와 content.js+page-bridge.js(외부 사이트용 어댑터)로 물리적으로 갈라져 있다. index.html만 검증하면 후자 두 파일은 한 줄도 실행되지 않은 채 초록이 된다. QA는 두 경로를 각각 검증하라(AC-006-4).",
+
+    "[바이너리 파일 — code-reviewer가 diff로 볼 수 없다] 화이트리스트에 `gradle/wrapper/gradle-wrapper.jar`가 있고, `app/src/main/res/**` 아래에는 런처 아이콘 PNG/WebP가 들어온다. 이들은 diff·grep이 침묵하는 파일이다(verification-honesty V8). gradle-wrapper.jar는 실행되는 코드이므로, 손으로 만들지 말고 반드시 `gradle wrapper` 명령의 산출물을 쓰고 그 사실을 로그에 남길 것. 리뷰는 '내용 대조'가 아니라 '출처 확인'으로 대신할 수밖에 없다.",
+
+    "[release 소스셋은 의도적으로 제외했다] `app/src/release/**`는 화이트리스트에 없다. requirements.md §6이 release 서명·R8·AAB를 스코프 아웃했기 때문이다. developer가 release 빌드를 시도하면 여기서 막히는데, 이는 버그가 아니라 설계된 정지점이다. 정말 필요하면 우회하지 말고 impact-analyzer 재실행을 요청하라.",
+
+    "[커버리지 분모 왜곡 — coverage-reporter 주의] REQ-010의 작업 산출물은 전량 `app/src/main/assets/**`(순수 JS)이라 JaCoCo에 단 한 줄도 기여하지 않는다. 계측 테스트도 `.ec`가 수집되지 않아 집계 밖이다(V8). 즉 rev.2에서 작업량은 늘었는데 커버리지 분모는 거의 안 늘어난다. 이를 테스트 부실이나 회귀로 오판하지 말 것. 70%는 BridgeProtocol·AppInfoRepository·MainViewModel 등 JVM 테스트가 닿는 Kotlin 레이어에서 벌어야 한다.",
+
+    "[local.properties를 넣은 이유와 그 대가] ANDROID_HOME이 셸 환경에 실제로 설정되어 있음을 확인했으므로(`/Users/appdevloperteam/Library/Android/sdk`) local.properties는 원칙적으로 불필요하다. 그럼에도 화이트리스트에 넣은 것은 AGP가 SDK를 못 찾는 상황에서 파이프라인이 멈추는 것을 막기 위한 비상구다. 대가: 이 파일은 머신 고유 절대경로를 담으므로 다른 머신에서 그대로 재현되지 않는다. 생성하지 않는 것이 기본이고, 만들었다면 그 사유를 로그에 남길 것.",
+
+    "[소스 루트가 둘 다 열려 있다] `app/src/main/java/**`와 `app/src/main/kotlin/**`을 모두 허용했다(스캐폴딩 도구가 어느 쪽을 만들지에 따라 파이프라인이 멈추는 것을 막기 위함). 그러나 **둘 다 쓰는 것은 금지**다 — planner가 하나를 골라 plan.md에 명시하고, code-reviewer는 두 디렉터리가 동시에 존재하면 지적하라. AGP 기본값과 requirements.md §7.1에 맞춰 `java/`를 권고한다."
+  ],
+
+  "requirements_map": {
+    "REQ-001": [
+      "settings.gradle.kts",
+      "build.gradle.kts",
+      "gradle/libs.versions.toml",
+      "app/build.gradle.kts",
+      "app/src/main/AndroidManifest.xml",
+      "app/src/main/java/com/example/geckoviewtest/App.kt",
+      "app/src/main/java/com/example/geckoviewtest/MainActivity.kt",
+      "app/src/main/res/layout/activity_main.xml"
+    ],
+    "REQ-002": [
+      "app/build.gradle.kts",
+      "app/src/main/res/layout/activity_main.xml",
+      "app/src/main/java/com/example/geckoviewtest/MainActivity.kt"
+    ],
+    "REQ-003": [
+      "app/src/main/assets/messaging/manifest.json",
+      "app/src/main/assets/messaging/background.js",
+      "app/src/main/java/com/example/geckoviewtest/App.kt",
+      "app/src/main/java/com/example/geckoviewtest/bridge/NativeBridgeHandler.kt",
+      "app/src/main/java/com/example/geckoviewtest/bridge/BridgeProtocol.kt",
+      "app/src/main/java/com/example/geckoviewtest/gecko/GeckoResultExt.kt",
+      "app/src/test/java/com/example/geckoviewtest/bridge/BridgeProtocolTest.kt"
+    ],
+    "REQ-004": [
+      "app/build.gradle.kts",
+      "app/src/main/java/com/example/geckoviewtest/data/AppInfoRepository.kt",
+      "app/src/main/java/com/example/geckoviewtest/data/AppInfoRepositoryImpl.kt",
+      "app/src/main/java/com/example/geckoviewtest/bridge/NativeBridgeHandler.kt",
+      "app/src/main/assets/messaging/background.js",
+      "app/src/main/assets/messaging/index.html",
+      "app/src/main/assets/messaging/bridge-client.js",
+      "app/src/test/java/com/example/geckoviewtest/data/AppInfoRepositoryTest.kt"
+    ],
+    "REQ-005": [
+      "app/src/main/java/com/example/geckoviewtest/MainViewModel.kt",
+      "app/src/main/java/com/example/geckoviewtest/MainActivity.kt",
+      "app/src/main/java/com/example/geckoviewtest/bridge/NativeBridgeHandler.kt",
+      "app/src/main/assets/messaging/background.js",
+      "app/src/main/assets/messaging/index.html",
+      "app/src/test/java/com/example/geckoviewtest/MainViewModelTest.kt"
+    ],
+    "REQ-006": [
+      "app/src/main/java/com/example/geckoviewtest/bridge/BridgeProtocol.kt",
+      "app/src/main/assets/messaging/background.js",
+      "app/src/main/assets/messaging/bridge-client.js",
+      "app/src/main/assets/messaging/page-bridge.js",
+      "app/src/main/assets/messaging/index.html",
+      "app/src/test/java/com/example/geckoviewtest/bridge/BridgeProtocolTest.kt"
+    ],
+    "REQ-007": [
+      "app/src/main/assets/messaging/index.html",
+      "app/src/main/assets/messaging/manifest.json",
+      "app/src/main/assets/messaging/bridge-client.js",
+      "app/src/main/java/com/example/geckoviewtest/App.kt",
+      "app/src/main/java/com/example/geckoviewtest/MainActivity.kt"
+    ],
+    "REQ-008": [
+      "app/src/main/res/layout/activity_main.xml",
+      "app/src/main/res/values/strings.xml",
+      "app/src/main/java/com/example/geckoviewtest/MainActivity.kt",
+      "app/src/main/java/com/example/geckoviewtest/MainViewModel.kt",
+      "app/src/debug/AndroidManifest.xml",
+      "app/src/main/res/xml/network_security_config.xml"
+    ],
+    "REQ-009": [
+      "app/src/main/res/layout/activity_main.xml",
+      "app/src/main/java/com/example/geckoviewtest/MainViewModel.kt",
+      "app/src/main/java/com/example/geckoviewtest/MainActivity.kt",
+      "app/src/main/java/com/example/geckoviewtest/gecko/AppProgressDelegate.kt",
+      "app/src/test/java/com/example/geckoviewtest/MainViewModelTest.kt"
+    ],
+    "REQ-010": [
+      "app/src/main/assets/messaging/manifest.json",
+      "app/src/main/assets/messaging/content.js",
+      "app/src/main/assets/messaging/page-bridge.js",
+      "app/src/main/assets/messaging/background.js"
+    ],
+    "REQ-011": [
+      "gradle/libs.versions.toml",
+      "app/build.gradle.kts",
+      "app/src/main/java/com/example/geckoviewtest/gecko/AppNavigationDelegate.kt",
+      "app/src/main/java/com/example/geckoviewtest/MainViewModel.kt",
+      "app/src/main/java/com/example/geckoviewtest/MainActivity.kt",
+      "app/src/test/java/com/example/geckoviewtest/MainViewModelTest.kt"
+    ]
+  }
+}

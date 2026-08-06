@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  debug 빌드에만 병합되는 매니페스트 조각.
+  안드로이드는 소스셋별 매니페스트를 하나로 합쳐준다(main + debug).
+
+  usesCleartextTraffic: 암호화되지 않은 http:// 통신을 허용하는 스위치.
+  REQ-008이 http://naver.com 을 명시하므로 넣는다.
+  다만 이것은 Android 네트워크 스택에 적용되는 설정이고, Gecko는 necko라는 자체 스택을 쓰므로
+  Gecko에도 적용되는지는 확인되지 않았다(plan.md U-08). 넣어서 해로울 것은 없어 우선 넣고,
+  Step 3에서 실제로 http 로드가 되는지 관측해 판정한다.
+  release 빌드는 이번 작업의 스코프 밖이라 debug 소스셋에만 둔다(plan.md B-09).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:usesCleartextTraffic="true" />
+</manifest>

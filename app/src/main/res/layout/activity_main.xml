@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  메인 화면의 레이아웃(REQ-002: Compose가 아닌 XML View).
+
+  GeckoView는 Mozilla가 제공하는 위젯으로, 안드로이드 기본 WebView(android.webkit)와 달리
+  Firefox와 같은 Gecko 엔진이 별도 프로세스에서 페이지를 렌더한다(REQ-001).
+
+  화면 구성:
+    - 위쪽 대부분: GeckoView (웹 콘텐츠)
+    - 그 위에 겹쳐지는 로딩 오버레이 (REQ-009)
+    - 아래쪽: naver 이동 버튼 (REQ-008)
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <org.mozilla.geckoview.GeckoView
+        android:id="@+id/geckoView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/btnNaver"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--
+      로딩 오버레이. GeckoView와 정확히 같은 영역을 덮는다.
+      visibility의 초기값은 gone이고, 이후 이 값을 바꾸는 곳은 MainActivity.render() 하나뿐이다 —
+      여러 곳에서 껐다 켜면 상태와 화면이 어긋나는 순간이 생긴다(plan.md D-07).
+    -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#B3000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/geckoView"
+        app:layout_constraintEnd_toEndOf="@id/geckoView"
+        app:layout_constraintStart_toStartOf="@id/geckoView"
+        app:layout_constraintTop_toTopOf="@id/geckoView">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- ProgressBar: 안드로이드 기본 로딩 표시. style을 지정하지 않으면 빙글빙글 도는 형태다. -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/loading"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/btnNaver"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_naver"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

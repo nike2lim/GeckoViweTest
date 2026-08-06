@@ -1,0 +1,28 @@
+
+
+# Claude Config Manager Extension - Security Rules
+# Prevents accidental commit of private conversation data
+.claude/.chats/
+.claude/.chats/**
+.claude/settings.local.json
+
+# Team-sharable Claude Code files (tracked by git):
+# .claude/settings.json     # Team settings (official Claude Code)
+# .claude/commands/         # Team slash commands (official Claude Code)
+# .claude/.plans/           # Project documentation (extension-specific)
+
+# --- Android / Gradle 빌드 산출물 ---
+# debug APK 하나가 약 198 MB다(GeckoView 네이티브 라이브러리가 비압축으로 들어간다).
+# 이 목록이 없으면 git init 직후 그 APK가 그대로 커밋 대상이 된다.
+build/
+app/build/
+.gradle/
+.kotlin/
+
+# 머신 고유 절대경로(SDK 위치)를 담으므로 공유하지 않는다.
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store

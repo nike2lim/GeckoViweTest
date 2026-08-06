@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  앱의 매니페스트. 안드로이드 시스템에게 "이 앱에 어떤 화면이 있고 어떤 권한이 필요한지"를 알려주는 선언 파일이다.
+  GeckoView AAR이 INTERNET 등 5종 권한과 <service> 89개를 자동으로 병합해 넣어주므로
+  여기에 그것들을 다시 쓸 필요가 없다(plan.md §0.1).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      android:name=".App" 는 "이 앱의 Application 클래스로 App.kt를 쓰라"는 등록이다.
+      이 한 줄이 빠지면 App.kt가 아예 실행되지 않아 GeckoRuntime이 만들어지지 않는다(plan.md R-07).
+    -->
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.GeckoViewTest">
+
+        <!--
+          android:exported="true" + LAUNCHER 인텐트 필터 = 런처(홈 화면)에서 실행 가능한 진입 화면.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

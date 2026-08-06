@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  런처 아이콘. PNG 대신 벡터 드로어블(VectorDrawable)을 쓴다.
+  이유: PNG는 바이너리라 코드 리뷰에서 diff·grep이 침묵한다(verification-honesty V8).
+  이 파일은 텍스트라 내용이 그대로 검토된다.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30L78,72H30z" />
+</vector>

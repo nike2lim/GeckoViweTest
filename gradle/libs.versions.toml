@@ -1,0 +1,48 @@
+# 버전 카탈로그 (Version Catalog).
+# 모든 라이브러리·플러그인 버전을 이 파일 한 곳에서만 관리한다.
+# build.gradle.kts에 "1.2.3" 같은 버전 문자열을 직접 쓰지 않는 것이 규칙이다(plan.md D-12).
+# 사용법: build.gradle.kts에서 libs.androidx.appcompat 처럼 참조한다.
+# (하이픈 `-`은 참조할 때 점 `.`으로 바뀐다. 예: androidx-appcompat -> libs.androidx.appcompat)
+
+[versions]
+# --- 툴체인: 이 조합은 실제 빌드로 검증된 것이다(plan.md §2.4). 임의로 올리지 말 것 ---
+agp = "8.13.2"
+kotlin = "2.3.21"
+
+# --- 라이브러리 ---
+# geckoview: "최신 stable"이 아니라 "이 파이프라인에서 실제로 빌드·검증이 끝난 고정 버전"이다.
+# maven-metadata.xml의 <release>는 이미 더 최신으로 이동했지만 좇아 올리지 않는다 —
+# 올리는 순간 검증되지 않은 버전이 되기 때문이다(plan.md §0.4, L-01).
+geckoview = "153.0.20260730155536"
+androidx-activity = "1.13.0"
+androidx-appcompat = "1.7.1"
+androidx-constraintlayout = "2.2.2"
+androidx-lifecycle = "2.11.0"
+# kotlinx-serialization: 브리지 JSON을 다루는 데 org.json 대신 이것을 쓴다.
+# org.json은 안드로이드 전용이라 JVM 단위 테스트에서 껍데기(stub)로 동작해 호출조차 안 된다.
+# 즉 이 선택이 없으면 BridgeProtocol이 JVM 테스트 불가가 되어 커버리지 목표가 산술적으로 무너진다(plan.md L-07).
+kotlinx-serialization = "1.9.0"
+
+# --- 테스트 / 커버리지 ---
+junit = "4.13.2"
+kotlinx-coroutines-test = "1.11.0"
+turbine = "1.2.1"
+jacoco = "0.8.15"
+
+[libraries]
+geckoview = { group = "org.mozilla.geckoview", name = "geckoview", version.ref = "geckoview" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidx-activity" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidx-constraintlayout" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+# 직렬화 플러그인 버전은 Kotlin 컴파일러 버전과 반드시 같아야 한다(컴파일러 플러그인이기 때문).
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

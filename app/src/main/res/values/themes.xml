@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  앱 전체에 적용되는 테마. AndroidManifest.xml의 android:theme가 이것을 가리킨다.
+  AppCompat 테마를 쓰는 이유는 MainActivity가 AppCompatActivity를 상속하기 때문이다 —
+  둘이 어긋나면 "You need to use a Theme.AppCompat theme" 런타임 예외가 난다.
+-->
+<resources>
+    <style name="Theme.GeckoViewTest" parent="Theme.AppCompat.DayNight.NoActionBar" />
+</resources>

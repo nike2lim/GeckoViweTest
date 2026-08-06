@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  사용자에게 보이는 안드로이드 UI 텍스트는 전부 이 파일에 둔다(plan.md D-13).
+  단 index.html·page-bridge.js 같은 웹 자산 안의 텍스트는 웹 리소스이므로 여기 대상이 아니다.
+-->
+<resources>
+    <string name="app_name">GeckoViewTest</string>
+    <string name="btn_naver">naver.com 이동</string>
+    <string name="loading">불러오는 중…</string>
+</resources>

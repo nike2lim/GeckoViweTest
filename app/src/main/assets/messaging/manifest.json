@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+  "name": "GeckoViewTest Bridge",
+  "version": "1.0",
+  "description": "페이지 JS와 안드로이드 네이티브 코드를 잇는 브리지 확장. JSON은 주석을 지원하지 않으므로 설계 근거는 background.js/content.js 상단 주석을 볼 것.",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "geckoviewtest@example.com"
+    }
+  },
+
+  "permissions": [
+    "geckoViewAddons",
+    "nativeMessaging",
+    "http://*/*",
+    "https://*/*"
+  ],
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "all_frames": false,
+      "js": ["content.js"]
+    }
+  ],
+
+  "web_accessible_resources": [
+    "index.html",
+    "bridge-client.js",
+    "page-bridge.js"
+  ]
+}
