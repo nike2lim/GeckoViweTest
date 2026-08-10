@@ -2,7 +2,7 @@
 
 Mozilla **GeckoView**(Firefox 엔진)를 XML View 기반으로 띄우고, **WebExtension의 `background.js`를 경유해 웹 페이지 ↔ 안드로이드 네이티브** 사이에 함수를 호출할 수 있게 만든 예제 앱이다.
 
-요구사항 원문은 [`initRequire.md`](initRequire.md), 상세 스펙은 [`pipeline/requirements.md`](pipeline/requirements.md)(rev.3)에 있다.
+요구사항 원문은 [`initRequire.md`](initRequire.md), 상세 스펙은 [`doc/archive/batch-01-geckoview/requirements.md`](doc/archive/batch-01-geckoview/requirements.md)(rev.3)에 있다.
 
 ## 무엇을 하는 앱인가
 
@@ -180,7 +180,7 @@ NativeBridge.call('someFunc', { key: 'value' });
 | 내장 `index.html` (확장 페이지) | O | 3단: `bridge-client.js` → `background.js` → 네이티브 |
 | **모든 http/https 사이트** | **O** | 5단: 페이지 → `page-bridge.js` → `content.js` → `background.js` → 네이티브 |
 
-> **보안 주의**: 브리지는 **모든 http/https 사이트에 열려 있다.** 사용자가 명시적으로 선택한 설계다(`pipeline/requirements.md` §5.1). 임의의 웹사이트가 `appFinish`로 앱을 종료시킬 수 있고, MITM으로 주입된 스크립트도 같은 권한을 갖는다.
+> **보안 주의**: 브리지는 **모든 http/https 사이트에 열려 있다.** 사용자가 명시적으로 선택한 설계다(`doc/archive/batch-01-geckoview/requirements.md` §5.1). 임의의 웹사이트가 `appFinish`로 앱을 종료시킬 수 있고, MITM으로 주입된 스크립트도 같은 권한을 갖는다.
 >
 > 제한이 필요해지면 `background.js`의 `isOriginAllowed()` 훅이 자리만 잡혀 있다. **현재는 기본값이 "전체 허용"이며, 켜는 것은 별도 결정 사항이다.**
 
@@ -616,12 +616,12 @@ $ADB shell dumpsys connectivity | grep "Active default network"
 
 | 문서 | 내용 |
 |:--|:--|
-| [`pipeline/requirements.md`](pipeline/requirements.md) | REQ-001~011과 수용 기준(AC-*). **rev.3이 최신** |
-| [`pipeline/plan.md`](pipeline/plan.md) | 설계 결정(D-01~D-13), 브리지 계약, 작업 순서와 게이트 |
-| [`pipeline/evaluation.md`](pipeline/evaluation.md) | 아키텍처 검증 판정 |
-| [`pipeline/review.md`](pipeline/review.md) | 코드 리뷰 |
-| [`pipeline/qa-report.md`](pipeline/qa-report.md) | **AC별 실기기 관측값** — 수동 QA의 상세 근거 |
-| [`pipeline/coverage-report.md`](pipeline/coverage-report.md) | 커버리지 판정과 사각지대 분석 |
+| [`doc/archive/batch-01-geckoview/requirements.md`](doc/archive/batch-01-geckoview/requirements.md) | REQ-001~011과 수용 기준(AC-*). **rev.3이 최신** |
+| [`doc/archive/batch-01-geckoview/plan.md`](doc/archive/batch-01-geckoview/plan.md) | 설계 결정(D-01~D-13), 브리지 계약, 작업 순서와 게이트 |
+| [`doc/archive/batch-01-geckoview/evaluation.md`](doc/archive/batch-01-geckoview/evaluation.md) | 아키텍처 검증 판정 |
+| [`doc/archive/batch-01-geckoview/review.md`](doc/archive/batch-01-geckoview/review.md) | 코드 리뷰 |
+| [`doc/archive/batch-01-geckoview/qa-report.md`](doc/archive/batch-01-geckoview/qa-report.md) | **AC별 실기기 관측값** — 수동 QA의 상세 근거 |
+| [`doc/archive/batch-01-geckoview/coverage-report.md`](doc/archive/batch-01-geckoview/coverage-report.md) | 커버리지 판정과 사각지대 분석 |
 | `doc/<날짜>/` | 각 단계 작업 로그 13개 |
 
 **GeckoView 관련 의사결정의 근거**(왜 `resource://`를 쓰지 않는지, 왜 MV2인지, 왜 `abiFilters`가 필요한지 등)는 `requirements.md` §2와 `plan.md` §2에 실측값과 함께 정리돼 있다.
