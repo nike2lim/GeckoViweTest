@@ -1,0 +1,42 @@
+{
+  "task": "App.kt에 뭉쳐 있는 AppContainer·AppBridgeHost를 별도 파일로 분리한다. Application 수명 스코프는 유지(GeckoRuntime의 프로세스당 1회 제약)하며 바꾸는 것은 파일 위치와 패키지뿐이다.",
+  "created_at": "2026-08-10T14:50:35+0900",
+  "enforce": false,
+  "allowed_files": [
+    "app/src/main/java/com/example/geckoviewtest/App.kt",
+    "app/src/main/java/com/example/geckoviewtest/MainActivity.kt",
+    "app/build.gradle.kts"
+  ],
+  "allowed_globs": [
+    "app/src/main/java/com/example/geckoviewtest/*AppContainer.kt",
+    "app/src/main/java/com/example/geckoviewtest/*AppBridgeHost.kt",
+    "app/src/test/**",
+    "app/src/androidTest/**"
+  ],
+  "readonly_context": [
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/com/example/geckoviewtest/bridge/BridgeDispatcher.kt",
+    "app/src/main/java/com/example/geckoviewtest/bridge/NativeBridgeHandler.kt",
+    "app/src/main/java/com/example/geckoviewtest/bridge/BridgeProtocol.kt",
+    "app/src/main/java/com/example/geckoviewtest/data/AppInfoRepository.kt",
+    "app/src/main/java/com/example/geckoviewtest/data/AppInfoRepositoryImpl.kt",
+    "app/src/main/java/com/example/geckoviewtest/MainViewModel.kt",
+    "app/src/main/java/com/example/geckoviewtest/MainUiState.kt",
+    "gradle/libs.versions.toml",
+    "gradle.properties",
+    "doc/archive/batch-01-geckoview/coverage-report.md"
+  ],
+  "risk_notes": [
+    "R-01 [실측 확인] coverageExclusions는 Gradle Ant PatternSet이라 `*`가 `/`를 넘지 않는다. 스크래치패드에 독립 Gradle 프로젝트를 만들어 app/build.gradle.kts의 패턴 원문을 그대로 실행한 결과: 같은 패키지의 `AppContainer.class`·`AppBridgeHost.class`는 계속 제외되지만 `di/AppContainer.class`·`di/AppBridgeHost.class`·`bridge/AppBridgeHost.class`는 제외되지 않고 분모에 들어온다. 컴파일도 테스트도 통과하므로 아무도 눈치채지 못한 채 게이트 수치만 바뀐다(verification-honesty V8).",
+    "R-02 두 선택지의 커버리지 귀결이 서로 다르다. (A) 같은 패키지에 파일만 분리 → 패턴이 계속 맞아 수치 불변, 그러나 AppBridgeHost가 여전히 분모 밖이라 후속 과제 F-2가 해결되지 않는다(파일만 나뉘고 제외는 그대로). (B) 하위 패키지(di/, bridge/)로 이동 → 패턴이 조용히 어긋나 두 클래스가 0%로 분모 진입. 어느 쪽을 고르든 `coverageExclusions`를 의식적으로 갱신하는 것이 이 배치의 필수 작업이며, 갱신하지 않으면 게이트 수치가 의도와 무관하게 정해진다.",
+    "R-03 [게이트와 별개 조항 — 놓치기 쉬움] architecture.md 테스트 절은 '변경된 클래스 라인 커버리지 70% 이상'과 '전체 커버리지는 베이스라인 대비 하락 금지'를 함께 요구한다. 배치 01이 남긴 '세 경우 모두 70% 게이트 통과'는 사실이지만 두 번째 조항을 덮지 못한다. 현재 베이스라인이 LINE 100.00%이므로 테스트 없이 분모만 넓히면 96.08%든 80.33%든 전부 '베이스라인 대비 하락'에 해당해 7단계 FAIL 사유가 된다.",
+    "R-04 R-03의 귀결: AppBridgeHost를 제외 목록에서 빼는 것과 그 4라인/2분기를 덮는 JVM 테스트를 추가하는 것은 반드시 같은 배치 안에서 짝으로 가야 한다. 짝을 맞추면 LINE 102/102 = 100.00%로 유지되어 F-2가 해결되면서 회귀도 없다. 한쪽만 하면 회귀가 된다.",
+    "R-05 AppContainer는 `Application`·`app.packageManager`·`Dispatchers.Main.immediate`에 실제로 의존하므로 build.gradle.kts가 스스로 밝힌 제외 기준('테스트하기 귀찮아서가 아니라 JVM 테스트로 실행 자체가 불가능한가')을 충족한다. 위치를 옮긴다고 이 판정은 바뀌지 않는다 — 제외를 유지하되 패턴 경로만 새 위치에 맞춰 고쳐야 한다. AppBridgeHost는 안드로이드 타입을 하나도 쓰지 않아 이 기준에 미달하며, 그것이 F-2의 내용이다.",
+    "R-06 [컴파일 성공이 증거가 아닌 지점] MainActivity는 `app.container.bridgeHost`를 타입 추론으로만 참조한다(129행 등록, 201행 해제). AppContainer/AppBridgeHost의 패키지가 바뀌어도 import가 필요 없어 MainActivity는 손대지 않아도 컴파일이 통과한다. 즉 '빌드가 됐다'를 '참조를 다 고쳤다'의 근거로 쓸 수 없다. 70·122·125행의 주석은 클래스명만 언급하므로 여전히 참이지만, 위치가 바뀌면 독자가 찾기 어려워지므로 주석 갱신 여부는 planner가 판단한다.",
+    "R-07 [빌드 환경 — 실측] 이 셸의 기본 JAVA_HOME이 Java 8이라 `./gradlew`가 설정 단계에서 실패한다('Dependency requires at least JVM runtime version 11. This build uses a Java 8 JVM'). 모든 Gradle 호출 앞에 `JAVA_HOME=/Users/appdevloperteam/Library/Java/JavaVirtualMachines/jbr-17.0.14/Contents/Home`를 붙여야 한다. gradle.properties가 '머신 고유 절대경로라 org.gradle.java.home을 넣지 않는다'고 명시한 관례(plan.md R-02)와 같은 이야기다.",
+    "R-08 후속 과제 F-1(자산 UP-TO-DATE 함정)은 이번 배치가 assets를 건드리지 않으므로 발현하지 않는다. 다만 `testDebugUnitTest`가 캐시되는 성질 자체는 그대로이므로 커버리지 측정은 `--rerun-tasks`로 강제 실행한다(내 베이스라인 재측정도 그렇게 했다).",
+    "R-09 [배치 01 인계값 정정] 이 프로젝트는 이제 git 저장소다. 배치 01 coverage-report.md §8의 F-5('이 프로젝트는 git 저장소가 아니다 — diff 기반 검증이 원천 불가')는 더 이상 성립하지 않는다. 커밋 2개(405763d 초기 구현, 1870cdf 아카이브), 작업 트리 클린, remote origin 설정됨. 리팩터링 원복 보증과 diff 기반 검증이 가능해졌으므로 code-reviewer는 `git diff`를 실제 근거로 쓸 수 있다.",
+    "R-10 화이트리스트는 '파일명 = 클래스명' 관례를 전제로 좁게 잡았다. scope-guard hook은 Python fnmatch를 쓰고 fnmatch의 `*`는 `/`를 넘으므로(직접 실행 확인) `*AppContainer.kt`·`*AppBridgeHost.kt` 두 글롭이 같은 패키지와 임의 하위 패키지를 모두 흡수한다. 그러나 planner가 다른 파일명(예: 두 클래스를 `AppScope.kt` 하나에 담기)이나 기존 파일 병합(예: bridge/BridgeDispatcher.kt에 AppBridgeHost 추가)을 택하면 차단된다. 기존 파일 병합은 이 배치가 없애려는 '한 파일에 여러 클래스'를 그대로 재생산하므로 권장하지 않으며, 그래도 필요하면 impact-analyzer 재실행을 요청할 것.",
+    "R-11 [의도적 제외] assets/messaging/** (JS 7개), res/**, AndroidManifest.xml, gradle/libs.versions.toml은 화이트리스트에 넣지 않았다. 이번 배치는 Kotlin 파일 위치만 옮기는 리팩터링이라 브리지 와이어 프로토콜·화면 리소스·의존성 버전이 바뀔 이유가 없다. 특히 AndroidManifest의 `android:name=\".App\"`은 App 클래스가 같은 패키지에 같은 이름으로 남으므로 수정이 불필요하다 — 만약 planner가 App 자체를 옮기려 한다면 그 순간 이 배치의 전제가 깨진 것이니 범위 재검토가 먼저다."
+  ]
+}

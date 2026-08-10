@@ -119,10 +119,11 @@ class MainActivity : AppCompatActivity() {
         /*
          * 웹 페이지가 브리지로 appFinish를 부르면 여기까지 전달된다(REQ-005).
          *
-         * 흐름: page JS → background.js → NativeBridgeHandler → BridgeDispatcher → AppBridgeHost
+         * 흐름: page JS → background.js → NativeBridgeHandler → BridgeDispatcher
+         *       → [com.example.geckoviewtest.bridge.AppBridgeHost]
          *       → **이 콜백** → ViewModel → MainUiEvent.Finish → handleEvent()의 finish()
          *
-         * AppBridgeHost는 앱 스코프(프로세스 수명)라 Activity보다 오래 산다.
+         * `AppBridgeHost`는 `bridge` 패키지에 있지만 앱 스코프(프로세스 수명)라 Activity보다 오래 산다.
          * 그래서 화면이 사라질 때 onDestroy에서 반드시 이 등록을 해제한다 —
          * 해제하지 않으면 죽은 Activity의 ViewModel을 붙잡고 있게 된다.
          */

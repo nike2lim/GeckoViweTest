@@ -1,19 +1,9 @@
 package com.example.geckoviewtest
 
 import android.app.Application
-import android.content.pm.PackageManager
-import android.os.Build
-import com.example.geckoviewtest.bridge.BridgeDispatcher
-import com.example.geckoviewtest.bridge.BridgeHost
 import com.example.geckoviewtest.bridge.BridgeProtocol
-import com.example.geckoviewtest.bridge.NativeBridgeHandler
-import com.example.geckoviewtest.data.AppInfoRepository
-import com.example.geckoviewtest.data.AppInfoRepositoryImpl
 import com.example.geckoviewtest.gecko.await
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
@@ -89,80 +79,3 @@ class App : Application() {
         const val EXTENSION_ID = "geckoviewtest@example.com"
     }
 }
-
-/**
- * 수동 DI 컨테이너 — "무엇이 무엇에 의존하는가"가 이 파일 하나에 그대로 보이게 하는 것이 목적이다.
- *
- * Hilt 같은 DI 프레임워크를 쓰지 않은 이유: 화면 1개에 주입 대상 5개뿐이라 손익분기점 아래이고,
- * 이미 229.5 MiB짜리 AAR을 들이는 중이라 애너테이션 처리 단계를 더 얹으면 빌드 루프가 느려진다.
- * `architecture.md`가 요구하는 것은 "생성자 주입"과 "Dispatcher 주입"이지 특정 프레임워크가 아니다.
- */
-class AppContainer(private val app: Application) {
-
-    /**
-     * Activity 수명과 무관하게 살아 있어야 하는 코루틴 스코프.
-     *
-     * 브리지 요청은 화면이 없는 순간에도 도착할 수 있어 `viewModelScope`가 맞지 않는다.
-     * 그렇다고 `GlobalScope`를 쓰면 금지 사항 위반이므로 스코프를 직접 만든다(plan.md D-10).
-     *
-     * `SupervisorJob`: 자식 코루틴 하나가 실패해도 형제들을 죽이지 않는다.
-     * `Dispatchers.Main.immediate`: GeckoView API 상당수가 UI 스레드 호출을 요구한다.
-     */
-    val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
-    /**
-     * **`PackageManager`가 이 앱에서 등장하는 유일한 곳이다.**
-     * 이 호출을 Repository 안에 두면 그 클래스가 안드로이드에 묶여 JVM 테스트가 불가능해지므로,
-     * 람다로 잘라내 여기서만 안드로이드를 만진다(plan.md D-02).
-     */
-    val appInfoRepository: AppInfoRepository = AppInfoRepositoryImpl {
-        try {
-            val packageManager = app.packageManager
-            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                // API 33부터 int 플래그를 받던 오버로드가 deprecated되고 PackageInfoFlags를 쓴다.
-                packageManager.getPackageInfo(app.packageName, PackageManager.PackageInfoFlags.of(0))
-            } else {
-                @Suppress("DEPRECATION")
-                packageManager.getPackageInfo(app.packageName, 0)
-            }
-            info.versionName
-        } catch (e: PackageManager.NameNotFoundException) {
-            // 자기 자신의 패키지를 못 찾는 일은 실무상 없지만, 예외를 삼키지 않고 null로 바꿔
-            // Repository의 UNKNOWN 폴백이 동작하게 한다.
-            null
-        }
-    }
-
-    val bridgeHost: AppBridgeHost = AppBridgeHost()
-
-    val bridgeDispatcher: BridgeDispatcher = BridgeDispatcher(
-        appInfoRepository = appInfoRepository,
-        host = bridgeHost,
-        // Dispatchers.Default: CPU 작업용 스레드 풀. 브리지 처리는 UI 스레드를 막으면 안 된다.
-        dispatcher = Dispatchers.Default,
-    )
-
-    val nativeBridgeHandler: NativeBridgeHandler = NativeBridgeHandler(
-        scope = applicationScope,
-        dispatcher = bridgeDispatcher,
-    )
-}
-
-/**
- * 브리지가 "앱을 종료해 달라"고 요청할 때의 창구 구현.
- *
- * 이 객체는 앱 스코프(프로세스 수명)인데 실제로 종료를 수행하는 Activity는 그보다 짧게 살고
- * 여러 번 다시 만들어진다. 그래서 직접 Activity를 들지 않고 현재 화면이 등록해 둔 콜백만 호출한다.
- * Activity를 필드로 들면 화면이 사라진 뒤에도 참조가 남아 메모리 누수가 된다.
- */
-class AppBridgeHost : BridgeHost {
-
-    /** `@Volatile`: 다른 스레드가 바꾼 값을 즉시 보이게 한다(브리지는 백그라운드 스레드에서 호출된다). */
-    @Volatile
-    var onFinishRequested: (() -> Unit)? = null
-
-    override fun requestFinish() {
-        onFinishRequested?.invoke()
-    }
-}
-

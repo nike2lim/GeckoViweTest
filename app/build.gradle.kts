@@ -114,12 +114,19 @@ dependencies {
  * 분모에 넣어봤자 영원히 0%로 남아 수치만 왜곡한다. 이들은 실기기 게이트로 검증한다(plan.md §7.3).
  *
  * 이 목록이 코드에 박혀 있으므로 누군가 제외 범위를 넓히면 diff에 그대로 드러난다.
+ *
+ * ┌ AppContainer는 제외인데 AppBridgeHost는 왜 아닌가 — 형제처럼 보이지만 기준의 양쪽이다 ──┐
+ * │ AppContainer: `Application`·`app.packageManager`·`Dispatchers.Main.immediate`에 의존한다. │
+ * │   특히 마지막 것은 `Dispatchers.setMain` 없이는 **생성자 실행 자체가 실패**하므로          │
+ * │   위 기준("JVM 테스트로 실행 자체가 불가능한가")을 충족한다 → 제외 유지.                   │
+ * │ AppBridgeHost: 안드로이드 타입을 **하나도** 쓰지 않는 순수 Kotlin 4줄짜리라 기준에 미달한다. │
+ * │   제외할 이유가 없어 목록에서 뺐고, AppBridgeHostTest가 그 4줄·2분기를 덮는다.             │
+ * └──────────────────────────────────────────────────────────────────────────────────────────┘
  */
 val coverageExclusions = listOf(
     "com/example/geckoviewtest/App.class",
     "com/example/geckoviewtest/App$*.class",
     "com/example/geckoviewtest/AppContainer*.class",
-    "com/example/geckoviewtest/AppBridgeHost*.class",
     "com/example/geckoviewtest/MainActivity*.class",
     "com/example/geckoviewtest/gecko/**",
     "com/example/geckoviewtest/bridge/NativeBridgeHandler*.class",
