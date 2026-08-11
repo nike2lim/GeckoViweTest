@@ -1,0 +1,401 @@
+{
+  "_comment": "커버리지 베이스라인 (후속 과제 F-4). 배치 종료 시 coverage-reporter가 갱신한다. 각 단계는 이 값을 Gradle 재실행으로 재산출하지 말고 'python3 tools/coverage-baseline.py check'로 대조하라. 산문(coverage-report.md)이 아니라 이 파일이 정본이다.",
+  "batch": "batch-02-refactor",
+  "measured_at": "2026-08-11T08:30:00+09:00",
+  "git_commit": "1870cdf + 미커밋 작업 트리 (배치 02 산출물은 아직 커밋 전)",
+  "command": "JAVA_HOME=<jbr-17> ./gradlew clean jvmCoverageReport --rerun-tasks",
+  "totals": {
+    "LINE": [
+      102,
+      102
+    ],
+    "BRANCH": [
+      20,
+      20
+    ],
+    "CLASS": [
+      15,
+      15
+    ],
+    "INSTRUCTION": [
+      626,
+      655
+    ],
+    "METHOD": [
+      49,
+      59
+    ],
+    "COMPLEXITY": [
+      59,
+      69
+    ]
+  },
+  "tests": {
+    "tests": 51,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "class_elements": 29,
+  "classes_with_counters": 15,
+  "coverage_exclusions": [
+    "com/example/geckoviewtest/App.class",
+    "com/example/geckoviewtest/App$*.class",
+    "com/example/geckoviewtest/AppContainer*.class",
+    "com/example/geckoviewtest/MainActivity*.class",
+    "com/example/geckoviewtest/gecko/**",
+    "com/example/geckoviewtest/bridge/NativeBridgeHandler*.class",
+    "**/BuildConfig.*",
+    "**/R.class",
+    "**/R$*.class",
+    "**/databinding/**"
+  ],
+  "classes": {
+    "com/example/geckoviewtest/MainUiEvent$Navigate": {
+      "INSTRUCTION": [
+        6,
+        9
+      ],
+      "LINE": [
+        1,
+        1
+      ],
+      "COMPLEXITY": [
+        1,
+        2
+      ],
+      "METHOD": [
+        1,
+        2
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/MainUiState": {
+      "INSTRUCTION": [
+        54,
+        54
+      ],
+      "LINE": [
+        6,
+        6
+      ],
+      "COMPLEXITY": [
+        6,
+        6
+      ],
+      "METHOD": [
+        6,
+        6
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/MainViewModel": {
+      "INSTRUCTION": [
+        159,
+        159
+      ],
+      "LINE": [
+        25,
+        25
+      ],
+      "COMPLEXITY": [
+        12,
+        12
+      ],
+      "METHOD": [
+        12,
+        12
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/MainViewModel$Factory": {
+      "INSTRUCTION": [
+        18,
+        18
+      ],
+      "LINE": [
+        4,
+        4
+      ],
+      "COMPLEXITY": [
+        2,
+        2
+      ],
+      "METHOD": [
+        2,
+        2
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/MainViewModel$emit$1": {
+      "INSTRUCTION": [
+        14,
+        14
+      ],
+      "LINE": [
+        2,
+        2
+      ],
+      "COMPLEXITY": [
+        1,
+        1
+      ],
+      "METHOD": [
+        1,
+        1
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/AppBridgeHost": {
+      "LINE": [
+        4,
+        4
+      ],
+      "BRANCH": [
+        2,
+        2
+      ],
+      "CLASS": [
+        1,
+        1
+      ],
+      "INSTRUCTION": [
+        19,
+        19
+      ],
+      "METHOD": [
+        4,
+        4
+      ],
+      "COMPLEXITY": [
+        5,
+        5
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeDispatcher": {
+      "INSTRUCTION": [
+        25,
+        25
+      ],
+      "LINE": [
+        6,
+        6
+      ],
+      "COMPLEXITY": [
+        2,
+        2
+      ],
+      "METHOD": [
+        2,
+        2
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeDispatcher$handle$2": {
+      "INSTRUCTION": [
+        46,
+        46
+      ],
+      "BRANCH": [
+        4,
+        4
+      ],
+      "LINE": [
+        10,
+        10
+      ],
+      "COMPLEXITY": [
+        3,
+        3
+      ],
+      "METHOD": [
+        1,
+        1
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeError": {
+      "INSTRUCTION": [
+        9,
+        15
+      ],
+      "LINE": [
+        4,
+        4
+      ],
+      "COMPLEXITY": [
+        1,
+        3
+      ],
+      "METHOD": [
+        1,
+        3
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeProtocol": {
+      "INSTRUCTION": [
+        155,
+        157
+      ],
+      "BRANCH": [
+        12,
+        12
+      ],
+      "LINE": [
+        20,
+        20
+      ],
+      "COMPLEXITY": [
+        11,
+        12
+      ],
+      "METHOD": [
+        5,
+        6
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeRequest": {
+      "INSTRUCTION": [
+        41,
+        44
+      ],
+      "LINE": [
+        7,
+        7
+      ],
+      "COMPLEXITY": [
+        5,
+        6
+      ],
+      "METHOD": [
+        5,
+        6
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeResponse": {
+      "INSTRUCTION": [
+        41,
+        56
+      ],
+      "LINE": [
+        8,
+        8
+      ],
+      "COMPLEXITY": [
+        2,
+        7
+      ],
+      "METHOD": [
+        2,
+        7
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeResult$Failure": {
+      "INSTRUCTION": [
+        15,
+        15
+      ],
+      "LINE": [
+        1,
+        1
+      ],
+      "COMPLEXITY": [
+        3,
+        3
+      ],
+      "METHOD": [
+        3,
+        3
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/bridge/BridgeResult$Success": {
+      "INSTRUCTION": [
+        9,
+        9
+      ],
+      "LINE": [
+        1,
+        1
+      ],
+      "COMPLEXITY": [
+        2,
+        2
+      ],
+      "METHOD": [
+        2,
+        2
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    },
+    "com/example/geckoviewtest/data/AppInfoRepositoryImpl": {
+      "INSTRUCTION": [
+        15,
+        15
+      ],
+      "BRANCH": [
+        2,
+        2
+      ],
+      "LINE": [
+        3,
+        3
+      ],
+      "COMPLEXITY": [
+        3,
+        3
+      ],
+      "METHOD": [
+        2,
+        2
+      ],
+      "CLASS": [
+        1,
+        1
+      ]
+    }
+  }
+}
